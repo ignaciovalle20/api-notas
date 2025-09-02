@@ -1,0 +1,71 @@
+# ConfigMap único para todas las instancias
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-notas-config
+data:
+  INSTANCE_TITLE: "API de Notas - Kubernetes Cluster"
+  INSTANCE_ID: "k8s-cluster"
+  DATA_DIR: "/usr/src/app/data"
+
+---
+# Deployment único con 3 réplicas
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-notas
+  labels:
+    app: api-notas
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-notas
+  template:
+    metadata:
+      labels:
+        app: api-notas
+    spec:
+      containers:
+      - name: api-notas
+        image: api-notas:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: api-notas-config
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 30
+        volumeMounts:
+        - name: data-volume
+          mountPath: /usr/src/app/data
+      volumes:
+      - name: data-volume
+        emptyDir: {}

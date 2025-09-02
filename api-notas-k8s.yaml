@@ -1,0 +1,199 @@
+# ConfigMaps para cada instancia
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-notas-instance1-config
+data:
+  INSTANCE_TITLE: "API de Notas - Instancia 1 (Producción)"
+  INSTANCE_ID: "instance-1"
+  DATA_DIR: "/usr/src/app/data"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-notas-instance2-config
+data:
+  INSTANCE_TITLE: "API de Notas - Instancia 2 (Desarrollo)"
+  INSTANCE_ID: "instance-2"
+  DATA_DIR: "/usr/src/app/data"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-notas-instance3-config
+data:
+  INSTANCE_TITLE: "API de Notas - Instancia 3 (Testing)"
+  INSTANCE_ID: "instance-3"
+  DATA_DIR: "/usr/src/app/data"
+
+---
+# Deployment para Instancia 1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-notas-instance1
+  labels:
+    app: api-notas
+    instance: instance1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-notas
+      instance: instance1
+  template:
+    metadata:
+      labels:
+        app: api-notas
+        instance: instance1
+    spec:
+      containers:
+      - name: api-notas
+        image: api-notas:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: api-notas-instance1-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 30
+        volumeMounts:
+        - name: data-volume
+          mountPath: /usr/src/app/data
+      volumes:
+      - name: data-volume
+        emptyDir: {}
+
+---
+# Deployment para Instancia 2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-notas-instance2
+  labels:
+    app: api-notas
+    instance: instance2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-notas
+      instance: instance2
+  template:
+    metadata:
+      labels:
+        app: api-notas
+        instance: instance2
+    spec:
+      containers:
+      - name: api-notas
+        image: api-notas:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: api-notas-instance2-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 30
+        volumeMounts:
+        - name: data-volume
+          mountPath: /usr/src/app/data
+      volumes:
+      - name: data-volume
+        emptyDir: {}
+
+---
+# Deployment para Instancia 3
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-notas-instance3
+  labels:
+    app: api-notas
+    instance: instance3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-notas
+      instance: instance3
+  template:
+    metadata:
+      labels:
+        app: api-notas
+        instance: instance3
+    spec:
+      containers:
+      - name: api-notas
+        image: api-notas:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: api-notas-instance3-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 30
+        volumeMounts:
+        - name: data-volume
+          mountPath: /usr/src/app/data
+      volumes:
+      - name: data-volume
+        emptyDir: {}
+
+
